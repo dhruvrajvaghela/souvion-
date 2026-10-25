@@ -178,6 +178,14 @@ CATS = {
         ("autosetup", "Enable MAX security and private logs", "Admin"),
         ("securitysetup", "Open the interactive security setup panel", "Admin"),
         ("setupsecurity", "Alias for securitysetup", "Admin")]),
+ 
+    "channelcontrol": ("🔒", "Channel Control", [
+        ("lock", "Lock the current text channel", "Manage Channels"),
+        ("unlock", "Unlock the current text channel", "Manage Channels"),
+        ("lock #channel", "Lock a specified text channel", "Manage Channels"),
+        ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
+    ]),
+
 }
 
 
