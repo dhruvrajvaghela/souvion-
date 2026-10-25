@@ -14,6 +14,9 @@ from zoneinfo import ZoneInfo
 import discord
 from discord.ext import commands, tasks
 
+import discord
+from discord.ext import commands
+from discord import app_commands
 
 TOKEN = os.getenv("DISCORD_TOKEN", "PASTE_TOKEN_HERE")
 OWNER_IDS = {int(x) for x in os.getenv("OWNER_IDS", "").split(",") if x.strip().isdigit()}
@@ -187,6 +190,16 @@ CATS = {
         ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
     ]),
 
+          embed.add_field(
+    name="✉️ DM MANAGEMENT",
+    value=(
+        "`&message send <user_id> <text>` — Send a DM\n"
+        "`&message delete <user_id> [amount]` — Delete bot's own DMs\n"
+        "`/message send` — Send a DM using user ID\n"
+        "`/message delete` — Delete bot's own DMs"
+    ),
+    inline=False
+          )
 
 }
 
@@ -1190,6 +1203,127 @@ async def unlock_chat(ctx, channel: discord.TextChannel = None):
         await ctx.send("❌ Bot ke paas required permission nahi hai.")
     except discord.HTTPException:
         await ctx.send("❌ Channel unlock nahi ho paya.")
+
+class SouvionDM(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def get_user(self, user_id: str):
+        if not user_id.isdigit():
+            return None
+
+        try:
+            return await self.bot.fetch_user(int(user_id))
+        except (discord.NotFound, discord.HTTPException):
+            return None
+
+    @commands.hybrid_group(
+        name="message",
+        description="SOUVION DM management",
+        invoke_without_command=True
+    )
+    @commands.has_guild_permissions(manage_messages=True)
+    async def message(self, ctx):
+        await ctx.send(
+            "Use `&message send <user_id> <text>` "
+            "or `&message delete <user_id> [amount]`."
+        )
+
+    @message.command(
+        name="send",
+        description="Send a DM using a Discord User ID"
+    )
+    @commands.has_guild_permissions(manage_messages=True)
+    @app_commands.describe(
+        user_id="Discord User ID",
+        text="Message to send"
+    )
+    async def send_dm(
+        self,
+        ctx,
+        user_id: str,
+        *,
+        text: str
+    ):
+        if ctx.interaction:
+            await ctx.defer(ephemeral=True)
+
+        user = await self.get_user(user_id)
+
+        if user is None:
+            result = "❌ Invalid ID or user could not be found."
+        elif user.bot:
+            result = "❌ DMs to bot accounts are disabled."
+        else:
+            try:
+                await user.send(
+                    f"{text}\n\n— SOUVION SECURITY"
+                )
+                result = f"✅ DM sent to `{user.id}`."
+
+            except discord.Forbidden:
+                result = (
+                    "❌ DM failed. The user may have DMs disabled "
+                    "or Discord may restrict this message."
+                )
+            except discord.HTTPException:
+                result = "❌ Discord could not deliver the DM."
+
+        if ctx.interaction:
+            await ctx.followup.send(result, ephemeral=True)
+        else:
+            await ctx.send(result)
+
+    @message.command(
+        name="delete",
+        description="Delete recent DMs sent by this bot"
+    )
+    @commands.has_guild_permissions(manage_messages=True)
+    @app_commands.describe(
+        user_id="Discord User ID",
+        amount="Number of messages to inspect (1-100)"
+    )
+    async def delete_dm(
+        self,
+        ctx,
+        user_id: str,
+        amount: app_commands.Range[int, 1, 100] = 10
+    ):
+        if ctx.interaction:
+            await ctx.defer(ephemeral=True)
+
+        user = await self.get_user(user_id)
+
+        if user is None:
+            result = "❌ Invalid ID or user not found."
+        else:
+            try:
+                dm = user.dm_channel or await user.create_dm()
+                deleted = 0
+
+                async for msg in dm.history(limit=amount):
+                    if (
+                        self.bot.user
+                        and msg.author.id == self.bot.user.id
+                    ):
+                        await msg.delete()
+                        deleted += 1
+
+                result = f"🗑️ Deleted {deleted} bot message(s)."
+
+            except discord.Forbidden:
+                result = "❌ Discord denied access to this DM."
+            except discord.HTTPException:
+                result = "❌ Could not delete the messages."
+
+        if ctx.interaction:
+            await ctx.followup.send(result, ephemeral=True)
+        else:
+            await ctx.send(result)
+
+
+async def setup(bot):
+    await bot.add_cog(SouvionDM(bot))
 
 
 bot.run(TOKEN)
