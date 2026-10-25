@@ -23,7 +23,7 @@ from discord.ext import commands
 TOKEN = os.getenv("DISCORD_TOKEN", "PASTE_TOKEN_HERE")
 OWNER_IDS = {int(x.strip()) for x in os.getenv("OWNER_IDS", "").split(",") if x.strip().isdigit()}
 DB_FILE = os.getenv("DATABASE", "atlanta_esports.sqlite3")
-DEFAULT_PREFIX = "¿"
+DEFAULT_PREFIX = "?"
 COLOR = 0x172554
 ACCENT = 0x3B82F6
 
