@@ -190,6 +190,12 @@ CATS = {
         ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
     ]),
 
+              "recording": ("🎙️", "Voice Recording", [
+        ("record start <name>", "Start recording after everyone consents", "Manage Channels"),
+        ("record stop", "Stop the active recording", "Manage Channels"),
+        ("record list", "List saved recordings", "Manage Channels"),
+    ]),
+
 }
 
 
