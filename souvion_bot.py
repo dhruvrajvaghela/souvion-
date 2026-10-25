@@ -191,17 +191,7 @@ CATS = {
         ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
     ]),
 
-          embed.add_field(
-    name="✉️ DM MANAGEMENT",
-    value=(
-        "`&message send <user_id> <text>` — Send a DM\n"
-        "`&message delete <user_id> [amount]` — Delete bot's own DMs\n"
-        "`/message send` — Send a DM using user ID\n"
-        "`/message delete` — Delete bot's own DMs"
-    ),
-    inline=False
-          )
-
+          
 }
 
 
