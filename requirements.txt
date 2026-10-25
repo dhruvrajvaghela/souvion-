@@ -1,6 +1,2 @@
 discord.py>=2.3
 tzdata
-
-discord.py[voice]>=2.4.0
-PyNaCl
-discord-ext-voice-recv==0.5.2a179
