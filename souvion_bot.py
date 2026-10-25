@@ -1118,4 +1118,69 @@ async def on_ready():
                                                         name="over your server | !help"))
 
 
+# ───────────────────────── chat lock / unlock ─────────────────────────
+
+@bot.command(name="lock")
+@commands.guild_only()
+@commands.has_permissions(manage_channels=True)
+async def lock_chat(ctx, channel: discord.TextChannel = None):
+    channel = channel or ctx.channel
+
+    if not channel.permissions_for(ctx.guild.me).manage_channels:
+        return await ctx.send("❌ Bot ko Manage Channels permission chahiye.")
+
+    overwrite = channel.overwrites_for(ctx.guild.default_role)
+    overwrite.send_messages = False
+
+    try:
+        await channel.set_permissions(
+            ctx.guild.default_role,
+            overwrite=overwrite,
+            reason=f"Chat locked by {ctx.author}"
+        )
+        await ctx.send(
+            embed=emb(
+                "🔒 Chat Locked",
+                f"{channel.mention} mein @everyone ab message nahi bhej sakta.",
+                0xED4245
+            )
+        )
+    except discord.Forbidden:
+        await ctx.send("❌ Bot ke paas required permission nahi hai.")
+    except discord.HTTPException:
+        await ctx.send("❌ Channel lock nahi ho paya.")
+
+
+@bot.command(name="unlock")
+@commands.guild_only()
+@commands.has_permissions(manage_channels=True)
+async def unlock_chat(ctx, channel: discord.TextChannel = None):
+    channel = channel or ctx.channel
+
+    if not channel.permissions_for(ctx.guild.me).manage_channels:
+        return await ctx.send("❌ Bot ko Manage Channels permission chahiye.")
+
+    overwrite = channel.overwrites_for(ctx.guild.default_role)
+    overwrite.send_messages = None
+
+    try:
+        await channel.set_permissions(
+            ctx.guild.default_role,
+            overwrite=overwrite,
+            reason=f"Chat unlocked by {ctx.author}"
+        )
+        await ctx.send(
+            embed=emb(
+                "🔓 Chat Unlocked",
+                f"{channel.mention} ka chat permission default par reset kar diya gaya.",
+                0x57F287
+            )
+        )
+    except discord.Forbidden:
+        await ctx.send("❌ Bot ke paas required permission nahi hai.")
+    except discord.HTTPException:
+        await ctx.send("❌ Channel unlock nahi ho paya.")
+
+
+
 bot.run(TOKEN)
