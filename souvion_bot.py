@@ -190,9 +190,7 @@ CATS = {
         ("lock #channel", "Lock a specified text channel", "Manage Channels"),
         ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
     ]),
- "staff": ("🛡️", "Esports Staff", [
-        ("staffsetup", "Create or update esports staff roles", "Manage Roles"),
-    ]),
+
   
 }
 
@@ -205,14 +203,6 @@ def main_help_embed(prefix):
     e.add_field(name="⚙️ Quick Setup",
                 value=f"`{prefix}securitysetup` • Interactive setup panel\n`{prefix}autosetup` • One-command MAX security setup",
                 inline=False)
-              e.add_field(
-        name="🛡️ Esports Staff Setup",
-        value=(
-            f"`{prefix}staffsetup` — Create staff roles "
-            "and configure their permissions"
-        ),
-        inline=False
-              )
     e.set_footer(text=f"Prefix: {prefix} • Select a category below")
     return e
 
@@ -1205,142 +1195,6 @@ async def unlock_chat(ctx, channel: discord.TextChannel = None):
     except discord.HTTPException:
         await ctx.send("❌ Channel unlock nahi ho paya.")
 
-
-# ───────────────────────── esports staff setup ─────────────────────────
-
-STAFF_ROLE_CONFIG = [
-    (
-        "Co-Owner", 0xD4AF37,
-        {
-            "manage_channels": True,
-            "manage_messages": True,
-            "moderate_members": True,
-            "kick_members": True,
-            "ban_members": True,
-            "view_audit_log": True,
-        },
-    ),
-    (
-        "Head Admin", 0x8B5CF6,
-        {
-            "manage_messages": True,
-            "moderate_members": True,
-            "kick_members": True,
-            "ban_members": True,
-            "view_audit_log": True,
-        },
-    ),
-    (
-        "Admin", 0xE74C3C,
-        {
-            "manage_messages": True,
-            "moderate_members": True,
-            "kick_members": True,
-        },
-    ),
-    (
-        "Moderator", 0x3498DB,
-        {
-            "manage_messages": True,
-            "moderate_members": True,
-        },
-    ),
-    (
-        "Trial Moderator", 0x5DADE2,
-        {
-            "manage_messages": True,
-        },
-    ),
-    ("Head Manager", 0x9B59B6, {}),
-    ("Tournament Manager", 0xF39C12, {}),
-    ("Scrim Manager", 0x1ABC9C, {}),
-    ("Tournament Host", 0x2ECC71, {}),
-    ("Support Team", 0x95A5A6, {}),
-    ("Ticket Support", 0x607D8B, {}),
-    ("Staff", 0x7289DA, {}),
-]
-
-
-@bot.command(name="staffsetup")
-@commands.guild_only()
-@commands.has_permissions(manage_roles=True)
-async def staffsetup(ctx):
-    guild = ctx.guild
-    bot_member = guild.me
-
-    if not bot_member.guild_permissions.manage_roles:
-        return await ctx.send(
-            "❌ Souvion Bot ko Manage Roles permission do."
-        )
-
-    created = []
-    updated = []
-    skipped = []
-
-    async with ctx.typing():
-        for name, color, flags in STAFF_ROLE_CONFIG:
-            role = discord.utils.get(guild.roles, name=name)
-            permissions = discord.Permissions(**flags)
-
-            try:
-                if role is not None:
-                    # Never edit roles at or above the bot's top role.
-                    if role >= bot_member.top_role or role.managed:
-                        skipped.append(
-                            f"{name} — role hierarchy/managed role"
-                        )
-                        continue
-
-                    await role.edit(
-                        colour=discord.Colour(color),
-                        permissions=permissions,
-                        hoist=True,
-                        reason=f"Staff setup by {ctx.author}"
-                    )
-                    updated.append(name)
-
-                else:
-                    await guild.create_role(
-                        name=name,
-                        colour=discord.Colour(color),
-                        permissions=permissions,
-                        hoist=True,
-                        mentionable=False,
-                        reason=f"Staff setup by {ctx.author}"
-                    )
-                    created.append(name)
-
-            except discord.Forbidden:
-                skipped.append(f"{name} — missing permissions")
-            except discord.HTTPException as exc:
-                skipped.append(f"{name} — Discord API error")
-
-    embed = discord.Embed(
-        title="🛡️ Esports Staff Setup",
-        description="Staff role setup process finished.",
-        colour=discord.Colour.gold()
-    )
-
-    embed.add_field(
-        name=f"✅ Created ({len(created)})",
-        value="\n".join(f"• {r}" for r in created) or "None",
-        inline=False
-    )
-    embed.add_field(
-        name=f"🔄 Updated ({len(updated)})",
-        value="\n".join(f"• {r}" for r in updated) or "None",
-        inline=False
-    )
-    embed.add_field(
-        name=f"⚠️ Skipped ({len(skipped)})",
-        value="\n".join(f"• {r}" for r in skipped) or "None",
-        inline=False
-    )
-    embed.set_footer(
-        text="Souvion Bot • Esports Staff Management"
-    )
-
-    await ctx.send(embed=embed)
 
 
 bot.run(TOKEN)
