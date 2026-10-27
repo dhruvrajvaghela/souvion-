@@ -191,13 +191,13 @@ CATS = {
         ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
     ]),
 
-          embed.add_field(
-    name="🛡️ Staff Management",
-    value=(
-        "`!staffsetup` — Create all esports staff roles\n"
-    ),
-    inline=False
-          )
+                      embed.add_field(
+                name="🛡️ Staff Management",
+                value=(
+                    "`!staffsetup` — Create all esports staff roles\n"
+                ),
+                inline=False
+                      )
           
 }
 
