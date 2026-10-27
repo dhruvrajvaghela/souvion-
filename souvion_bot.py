@@ -191,6 +191,13 @@ CATS = {
         ("unlock #channel", "Unlock a specified text channel", "Manage Channels")
     ]),
 
+          embed.add_field(
+    name="🛡️ Staff Management",
+    value=(
+        "`!staffsetup` — Create all esports staff roles\n"
+    ),
+    inline=False
+          )
           
 }
 
@@ -1195,5 +1202,66 @@ async def unlock_chat(ctx, channel: discord.TextChannel = None):
     except discord.HTTPException:
         await ctx.send("❌ Channel unlock nahi ho paya.")
 
+@bot.command(name="staffsetup")
+@commands.has_permissions(administrator=True)
+async def staffsetup(ctx):
+    """Create esports staff roles without duplicates."""
+
+    staff_roles = [
+        ("Co-Owner", 0xD4AF37),
+        ("Head Admin", 0x8B5CF6),
+        ("Admin", 0xE74C3C),
+        ("Moderator", 0x3498DB),
+        ("Trial Moderator", 0x5DADE2),
+        ("Head Manager", 0x9B59B6),
+        ("Tournament Manager", 0xF39C12),
+        ("Scrim Manager", 0x1ABC9C),
+        ("Tournament Host", 0x2ECC71),
+        ("Support Team", 0x95A5A6),
+        ("Ticket Support", 0x607D8B),
+        ("Staff", 0x7289DA),
+    ]
+
+    created = []
+    existing = []
+
+    for role_name, color in staff_roles:
+        role = discord.utils.get(ctx.guild.roles, name=role_name)
+
+        if role is None:
+            await ctx.guild.create_role(
+                name=role_name,
+                colour=discord.Colour(color),
+                reason=f"Staff setup requested by {ctx.author}"
+            )
+            created.append(role_name)
+        else:
+            existing.append(role_name)
+
+    embed = discord.Embed(
+        title="ESPORTS STAFF SETUP",
+        description="Staff role setup completed.",
+        color=discord.Colour.gold()
+    )
+    embed.add_field(
+        name=f"Created ({len(created)})",
+        value="\n".join(f"• {r}" for r in created) or "None",
+        inline=True
+    )
+    embed.add_field(
+        name=f"Already Exists ({len(existing)})",
+        value="\n".join(f"• {r}" for r in existing) or "None",
+        inline=True
+    )
+    await ctx.send(embed=embed)
+
+
+@staffsetup.error
+async def staffsetup_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You need Administrator permission to run this command.")
+    else:
+        raise error
+              
 
 bot.run(TOKEN)
